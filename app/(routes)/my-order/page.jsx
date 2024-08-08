@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 const MyOrder = () => {
   const jwt = getCookie("jwt");
   const userData = getCookie("user");
+  console.log("user cookie data ->",user)
   const [user, setUser] = useState(null);
   const router = useRouter();
   const [orderList, setOrderList] = useState([]);
@@ -49,7 +50,7 @@ const MyOrder = () => {
     } finally {
       setLoading(false);
     }
-  }, [jwt, userData, router]);
+  }, []);
 
   const getMyOrder = async () => {
     try {
