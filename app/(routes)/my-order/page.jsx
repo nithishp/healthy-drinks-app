@@ -4,11 +4,7 @@ import GlobalApi from "@/app/_utils/GlobalApi";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getCookie } from 'cookies-next';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+
 import moment from "moment";
 import MyOrderItem from "./_component/MyOrderItem";
 import {
@@ -31,10 +27,10 @@ const MyOrder = () => {
   useEffect(() => {
     if (!jwt) {
       router.replace("/");
-    } else {
+    } 
       getMyOrder();
-    }
-  }, [jwt, router]);
+    
+  }, []);
 
   const getMyOrder = async () => {
     try {
