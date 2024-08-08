@@ -6,7 +6,7 @@ import ProductList from '@/app/_components/ProductList'
 const ProductCategory = async({params}) => {
     const categoryList = await GlobalApi.getCategoryList()
     const productsList = await GlobalApi.getProductsByCategories(params.categoryName)
-    console.log(productsList,"page.jsx")
+    
 
     // Decode the category name
     const decodedCategoryName = decodeURIComponent(params.categoryName)

@@ -43,7 +43,7 @@ const Checkout = () => {
       }
 
       const cartItemList_ = await GlobalApi.getCartItems(user.id, jwt);
-      console.log('Fetched cart items:', cartItemList_);
+      
 
       if (Array.isArray(cartItemList_)) {
         setCartItemList([...cartItemList_]);
@@ -115,11 +115,11 @@ const Checkout = () => {
           userId: user.id,
         },
       };
-      console.log('Payload:', payload);
+     
 
       GlobalApi.createOrder(payload, jwt)
         .then((resp) => {
-          console.log(resp);
+         
           toast.success('Order placed successfully.');
           router.replace('/order-confirmation');
         })

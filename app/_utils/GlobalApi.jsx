@@ -46,7 +46,7 @@ const getCartItems = (userId,jwt) => axiosClient.get('/carts?filters[userId][$eq
 
         }
     ))
-    console.log("GetCartItems :",cartItemsList)
+    
     return cartItemsList
 })
 
@@ -69,7 +69,7 @@ const getMyOrder=(userId,jwt)=>axiosClient.get('/orders?filters[userId][$eq]='+u
 })
 .then(resp=>{
     const responce=resp.data.data;
-    console.log("GetMyOrder",responce)
+    
     const orderList=responce.map(item=>({
         id:item.id, 
         totalOrderAmount:item.attributes.totalOrderAmount,

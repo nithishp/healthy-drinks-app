@@ -29,8 +29,7 @@ const Page = () => {
     setLoader(true);
     try {
       const response = await GlobalApi.signIn(email, password);
-      console.log(response.data.user);
-      console.log(response.data.jwt);
+     
       setCookie('user', JSON.stringify(response.data.user));
       setCookie('jwt', response.data.jwt);
       toast.success('Login Successful');

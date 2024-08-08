@@ -43,9 +43,7 @@ const Header = () => {
   const { updateCart } = useContext(UpdateCartContext);
   const router = useRouter();
 
-  console.log("User data", user);
-  console.log("JWT data", jwt);
-
+  
   useEffect(() => {
     getCategoryList();
   }, []);
@@ -57,7 +55,7 @@ const Header = () => {
   const getCategoryList = () => {
     GlobalApi.getCategories()
       .then((resp) => {
-        console.log("Categories fetched:", resp.data.data);
+       
         setCategoryList(resp.data.data);
       })
       .catch((error) => {
@@ -73,7 +71,7 @@ const Header = () => {
       }
 
       const cartItemList_ = await GlobalApi.getCartItems(user.id, jwt);
-      console.log("Fetched cart items:", cartItemList_);
+      
 
       if (Array.isArray(cartItemList_)) {
         setCartItemList([...cartItemList_]);

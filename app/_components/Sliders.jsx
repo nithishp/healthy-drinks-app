@@ -10,7 +10,7 @@ import {
 
 
 const Sliders = ({sliderList}) => {
-  console.log('slider List',sliderList)
+
 
   return (
     <Carousel>

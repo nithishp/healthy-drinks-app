@@ -36,8 +36,7 @@ const CreateAccount = () => {
     setLoader(true);
     try {
       const response = await GlobalApi.registerUser(username, email, password);
-      console.log(response.data.user);
-      console.log(response.data.jwt);
+     
       setCookie('user', JSON.stringify(response.data.user));
       setCookie('jwt', response.data.jwt);
       toast.success('Account created successfully');
