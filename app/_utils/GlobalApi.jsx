@@ -1,7 +1,7 @@
 const {default:axios} = require('axios')
 
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:8082/api',
+    baseURL: 'https://vedsa-strapi-backend.onrender.com/api',
 });
 
  const getCategories =  () => axiosClient.get('/categories?populate=*');
