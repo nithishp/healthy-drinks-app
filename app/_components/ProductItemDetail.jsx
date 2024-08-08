@@ -1,4 +1,5 @@
-"use client";
+'use client';
+//error handling added
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
@@ -20,13 +21,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { getCookie } from "cookies-next";
 
 const ProductItemDetail = ({ product }) => {
-  const jwt = sessionStorage.getItem("jwt");
-  const userData = sessionStorage.getItem("user");
-  const user = JSON.parse(userData);
+  const router = useRouter();
+  const jwt = getCookie("jwt");
+  const userData = getCookie("user");
+  const user = userData ? JSON.parse(userData) : null;
   const { updateCart, setUpdateCart } = useContext(UpdateCartContext);
-  
+
   const [productTotalPrice, setProductTotalPrice] = useState(
     product.attributes.sellingPrice
       ? product.attributes.sellingPrice
@@ -36,15 +39,13 @@ const ProductItemDetail = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
-  const [isSubscription, setIsSubscription] = useState(false); // New state to handle subscription toggle
-  const [subscriptionDays, setSubscriptionDays] = useState(0); // New state to store number of days for subscription
-  const [totalPrice, setTotalPrice] = useState(productTotalPrice); // New state to store total price
-
-  const router = useRouter();
+  const [isSubscription, setIsSubscription] = useState(false);
+  const [subscriptionDays, setSubscriptionDays] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(productTotalPrice);
 
   useEffect(() => {
     if (isSubscription && fromDate && toDate) {
-      const days = differenceInCalendarDays(toDate, fromDate) + 1; // Include the start date
+      const days = differenceInCalendarDays(toDate, fromDate) + 1;
       setSubscriptionDays(days);
       setTotalPrice(days * productTotalPrice * quantity);
     } else {
@@ -53,38 +54,41 @@ const ProductItemDetail = ({ product }) => {
     }
   }, [isSubscription, fromDate, toDate, quantity, productTotalPrice]);
 
-  const addToCart = () => {
+  const addToCart = async () => {
     setLoading(true);
-    if (!jwt) {
-      router.push("/sign-in");
-      setLoading(false);
-      return;
-    }
-
-    const data = {
-      data: {
-        userName: user.username,
-        email: user.email,
-        products: product.id,
-        quantity: quantity,
-        amount: totalPrice.toFixed(0),
-        userId: user.id,
-        from: fromDate,
-        to: isSubscription ? toDate : null, // Send toDate only if subscription is selected
-      },
-    };
-
-    GlobalApi.addToCart(data, jwt).then(
-      (resp) => {
-        toast.success("Added to cart");
-        setUpdateCart(!updateCart);
-        setLoading(false);
-      },
-      (e) => {
-        toast.error("Error While Adding Product into cart");
-        setLoading(false);
+    try {
+      if (!jwt) {
+        toast.error('You must be signed in to add items to the cart.');
+        router.push("/sign-in");
+        return;
       }
-    );
+
+      if (!user) {
+        throw new Error('User data is missing. Please sign in again.');
+      }
+
+      const data = {
+        data: {
+          userName: user.username,
+          email: user.email,
+          products: product.id,
+          quantity: quantity,
+          amount: totalPrice.toFixed(0),
+          userId: user.id,
+          from: fromDate,
+          to: isSubscription ? toDate : null,
+        },
+      };
+
+      const response = await GlobalApi.addToCart(data, jwt);
+      toast.success("Added to cart");
+      setUpdateCart(!updateCart);
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      toast.error(error?.response?.data?.message || "Error while adding product to cart.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isPastDay = (day) => {
@@ -126,9 +130,8 @@ const ProductItemDetail = ({ product }) => {
           <div className="flex flex-col items-baseline gap-3">
             <div className="flex gap-3 items-center ">
               <div className="p-2 border-[2px] flex gap-10 items-center px-4">
-                
                 <button
-                  disabled={quantity == 1}
+                  disabled={quantity === 1}
                   onClick={() => setQuantity(quantity - 1)}
                 >
                   -
@@ -137,7 +140,6 @@ const ProductItemDetail = ({ product }) => {
                 <button onClick={() => setQuantity(quantity + 1)}>+</button>
               </div>
               <h2 className="font-semibold text-3xl">
-                {" "}
                 = ₹ {totalPrice}
               </h2>
             </div>
@@ -246,7 +248,6 @@ const ProductItemDetail = ({ product }) => {
             </div>
           </div>
         )}
-
         <h2>
           <span className="font-semibold">Category</span>:{" "}
           {product.attributes.categories.data[0].attributes.name}{" "}

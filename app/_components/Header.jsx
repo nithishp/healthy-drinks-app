@@ -1,9 +1,12 @@
 "use client";
+//error handling added
+
 import { Button } from "@/components/ui/button";
 import { CircleUserRound, CupSoda, Search, ShoppingBag } from "lucide-react";
 import logo from "../assets/img/logowithtext.png";
-import Image from "next/image"; // Correct import for Next.js Image component
+import Image from "next/image";
 import React, { useContext, useEffect, useState } from "react";
+import { deleteCookie, getCookie } from "cookies-next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +24,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
 import GlobalApi from "../_utils/GlobalApi";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,13 +34,17 @@ import { toast } from "sonner";
 const Header = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [totalCartItem, setTotalCartItem] = useState(0);
-  const isLoggedIn = sessionStorage.getItem("jwt") ? true : false;
-  const jwt = sessionStorage.getItem("jwt");
-  const userData = sessionStorage.getItem("user");
-  const user = JSON.parse(userData);
-  const { updateCart } = useContext(UpdateCartContext);
   const [cartItemList, setCartItemList] = useState([]);
+  const [subtotal, setSubTotal] = useState(0);
+
+  const isLogin = getCookie("jwt") ? true : false;
+  const user = JSON.parse(getCookie("user") || "{}");
+  const jwt = getCookie("jwt");
+  const { updateCart } = useContext(UpdateCartContext);
   const router = useRouter();
+
+  console.log("User data", user);
+  console.log("JWT data", jwt);
 
   useEffect(() => {
     getCategoryList();
@@ -56,43 +62,55 @@ const Header = () => {
       })
       .catch((error) => {
         console.error("Error fetching categories:", error);
+        toast.error("Failed to fetch categories. Please try again later.");
       });
   };
 
   const getCartItems = async () => {
     try {
       if (!user || !jwt) {
-        throw new Error("User or JWT is not available in session storage.");
+        throw new Error("User or JWT is not available.");
       }
 
       const cartItemList_ = await GlobalApi.getCartItems(user.id, jwt);
       console.log("Fetched cart items:", cartItemList_);
 
       if (Array.isArray(cartItemList_)) {
-        setCartItemList([...cartItemList_]); // Ensure we set a new array reference
-        console.log("Items in cart :", cartItemList);
+        setCartItemList([...cartItemList_]);
         setTotalCartItem(cartItemList_.length);
       } else {
         throw new Error("Cart items data is not in expected array format.");
       }
     } catch (error) {
       console.error("Error fetching cart items:", error);
+      toast.error("Failed to fetch cart items. Please try again later.");
       setCartItemList([]);
     }
   };
 
   const onSignOut = () => {
-    sessionStorage.clear();
-    router.push("/sign-in");
+    try {
+      deleteCookie("jwt");
+      deleteCookie("user");
+      router.push("/sign-in");
+      toast.success("Signed out successfully.");
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      toast.error("Failed to sign out. Please try again.");
+    }
   };
 
   const onDeleteItem = (id) => {
-    GlobalApi.deleteCartItem(id, jwt).then((resp) => {
-      toast.success("Item Removed!");
-      getCartItems();
-    });
+    GlobalApi.deleteCartItem(id, jwt)
+      .then(() => {
+        toast.success("Item Removed!");
+        getCartItems();
+      })
+      .catch((error) => {
+        console.error("Error deleting item:", error);
+        toast.error("Failed to remove item. Please try again.");
+      });
   };
-  const [subtotal, setSubTotal] = useState(0);
 
   useEffect(() => {
     let total = 0;
@@ -107,14 +125,18 @@ const Header = () => {
     setSubTotal(total);
   }, [cartItemList]);
 
-
-
   return (
     <div className="px-5 pt-6 pb-6 shadow-sm flex justify-between">
       <div className="flex items-center gap-8">
         <div>
-          <Link href={'/'} >
-          <Image src={logo} alt="logo" width={150} height={100} className="cursor-pointer" />
+          <Link href={"/"}>
+            <Image
+              src={logo}
+              alt="logo"
+              width={150}
+              height={100}
+              className="cursor-pointer"
+            />
           </Link>
         </div>
         <DropdownMenu>
@@ -184,13 +206,17 @@ const Header = () => {
                 <h2 className="text-lg font-semibold flex justify-between">
                   Subtotal <span>₹{subtotal.toFixed(2)}</span>
                 </h2>
-                <Button onClick={()=>router.push(jwt?'/checkout':'/sign-in')} >Checkout</Button>
+                <Button
+                  onClick={() => router.push(jwt ? "/checkout" : "/sign-in")}
+                >
+                  Checkout
+                </Button>
               </div>
             </SheetClose>
           </SheetContent>
         </Sheet>
 
-        {!isLoggedIn ? (
+        {!isLogin ? (
           <Link href={"/sign-in"}>
             <Button>Login</Button>
           </Link>
@@ -203,8 +229,8 @@ const Header = () => {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Profile</DropdownMenuItem>
-              <Link href={'/my-order'}>
-              <DropdownMenuItem>My Orders</DropdownMenuItem>
+              <Link href={"/my-order"}>
+                <DropdownMenuItem>My Orders</DropdownMenuItem>
               </Link>
               <DropdownMenuItem onClick={() => onSignOut()}>
                 Logout
