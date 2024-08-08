@@ -1,10 +1,13 @@
 'use client';
-//error handling added
 import GlobalApi from "@/app/_utils/GlobalApi";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getCookie } from 'cookies-next';
-
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import moment from "moment";
 import MyOrderItem from "./_component/MyOrderItem";
 import {
@@ -18,7 +21,7 @@ import { toast } from 'sonner';
 const MyOrder = () => {
   const jwt = getCookie("jwt");
   const userData = getCookie("user");
-  const user = JSON.parse(userData);
+  const [user, setUser] = useState(null);
   const router = useRouter();
   const [orderList, setOrderList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,14 +30,31 @@ const MyOrder = () => {
   useEffect(() => {
     if (!jwt) {
       router.replace("/");
-    } 
-      getMyOrder();
-    
-  }, []);
+      return;
+    }
+
+    // Handle the case where userData might be undefined or invalid
+    try {
+      if (userData) {
+        setUser(JSON.parse(userData));
+        getMyOrder();
+      } else {
+        setError('User data is missing');
+        toast.error('User data is missing');
+      }
+    } catch (e) {
+      console.error('Failed to parse user data:', e);
+      setError('Failed to parse user data. Please try again later.');
+      toast.error('Failed to parse user data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, [jwt, userData, router]);
 
   const getMyOrder = async () => {
     try {
       setLoading(true);
+      if (!user) throw new Error('User data is not available');
       const orderList_ = await GlobalApi.getMyOrder(user.id, jwt);
       console.log("My Orders ", orderList_);
       setOrderList(orderList_);
