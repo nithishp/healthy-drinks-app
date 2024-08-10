@@ -20,6 +20,7 @@ function MyOrder() {
     try
     {
         user=JSON.parse(getCookie('user'));
+        console.log("user",user)
     }catch(e){}
     const router=useRouter();
     const [orderList,setOrderList]=useState([]);
@@ -33,7 +34,7 @@ function MyOrder() {
 
     const getMyOrder=async()=>{
         const orderList_=await GlobalApi.getMyOrder(user.id,jwt);
-        console.log(orderList_);
+        console.log("oreder List ->",orderList_);
         setOrderList(orderList_)
     }
 
@@ -55,7 +56,7 @@ function MyOrder() {
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                   {item.orderItemList.map((order,index_)=>(
+                   {item.OrderItemList.map((order,index_)=>(
                     <MyOrderItem orderItem={order} key={index_} />
                    ))}
                 </CollapsibleContent>
