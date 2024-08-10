@@ -8,8 +8,9 @@ import {
     CollapsibleTrigger,
   } from "@/components/ui/collapsible"
 import moment from 'moment';
-import MyOrderItem from './_components/MyOrderItem';
+
 import { getCookie } from 'cookies-next';
+import MyOrderItem from './_component/MyOrderItem';
 // import { useCookies } from 'next-client-cookies';
   
 function MyOrder() {
